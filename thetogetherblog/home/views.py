@@ -133,7 +133,8 @@ def handle_album(request):
             return JsonResponse({"message":"not authenticated"}, status=401)
         try:
             body = json.loads(request.body)
-            album = Album.objects.create(id=str(uuid.uuid4()), title=body["title"], description=body["description"])
+            album = Album.objects.create(id=str(uuid.uuid4()), title=body["title"], \
+                description=body["description"])
             if "imageURL" in body:
                 album.imageURL = body["imageURL"]
                 album.save()
@@ -196,7 +197,8 @@ def handle_album_by_id(request, album_id):
     elif request.method == "POST" and check_user(request):
         try:
             body = json.loads(request.body)
-            album = Album.objects.create(id=album_id, title=body["title"], description=body["description"])
+            album = Album.objects.create(id=album_id, title=body["title"], \
+                description=body["description"])
             if "imageURL" in body:
                 album.imageURL = body["imageURL"]
                 album.save()
