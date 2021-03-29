@@ -38,7 +38,7 @@ def logout_redirect(request):
 def check_user(request):
     try:
         current_user = request.user
-        User.objects.get(username=current_user) 
+        User.objects.get(username=current_user, is_staff=True) 
         return True
     except:
         return False

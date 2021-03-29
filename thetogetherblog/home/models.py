@@ -7,6 +7,7 @@ class Album(models.Model):
     description = models.TextField()
     imageURL = models.CharField(max_length=250, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
+    reference = models.CharField(max_length=50, blank=True, null=True)
 
 class Post(models.Model):
     id = models.CharField(max_length=50, primary_key=True)
