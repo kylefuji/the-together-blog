@@ -1,0 +1,30 @@
+{% load static %}
+<header class="navbar navbar-expand-sm navbar-dark fixed-top">
+    <a class="navbar-brand" href="{% url 'home' %}">
+        <img alt="" src="{% static 'images/heart.svg' %}">
+        Together
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarText">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'home' %}">
+                    Home
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Albums</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">About Us</a>
+            </li>
+        </ul>
+    </div>
+</header>
+<style>
+    .navbar{
+        background-color: rgb(53, 21, 128);
+    }
+</style>

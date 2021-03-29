@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+    {% load static %}
+    {% get_static_prefix as STATIC_URL %}
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/heart.svg' %}" />
+        <title>The Together Blog</title>
+    </head>
+    <body>
+        {% include "navbar.html" %}
+        {% load crispy_forms_tags %}  
+        <div class="container">
+        <div class="row" style="margin-top: 5em;"></div>
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-xl-4 align-self-center">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="ml-3">
+                            Welcome
+                        </h2>
+                    </div>
+                    {% block content %}
+                    <form class="mt-5 mb-5" method="POST">
+                        {%csrf_token%}
+                        {%for field in form %}
+                        <div class="form-row justify-content-center">
+                            <div class="col-sm-8 ml-1 mr-1">
+                                {{field|as_crispy_field}}
+                            </div>
+                        </div>
+                        {%endfor%}
+                        {% if form.errors %}
+                            <div class="form-row justify-content-center invalid-feedback d-block">
+                                {% for field, error in form.errors.items %}
+                                    {% if field != '__all__' %}{{ field }}{% endif %}
+                                    {{error}}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-row justify-content-center">
+                            <button class="btn btn-success mr-1" type="submit">
+                                Login
+                            </button>
+                        </div>
+                    </form>
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+        <div class="row"></div>
+        </div>
+    </body>
+</html> 
