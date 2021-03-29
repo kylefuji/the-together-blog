@@ -46,24 +46,27 @@ def check_user(request):
 @csrf_exempt
 def handle_post(request):
     if request.method == "GET":
-        all_posts = Post.objects.all().order_by('-created')
-        response = {"posts": []}
-        for post in all_posts:
-            post_dict = {
-                "id": post.id,
-                "user": str(post.user),
-                "title": post.title,
-                "content": post.content,
-                "created": post.created,
-                "imageURLs": post.imageURLs,
-                "videoURLs": post.videoURLs,
-            }
-            try:
-                post_dict["album"] = post.album.id
-            except:
-                post_dict["album"] = None
-            response["posts"].append(post_dict)
-        return JsonResponse(response, status=200)
+        try:
+            all_posts = Post.objects.all().order_by('-created')
+            response = {"posts": []}
+            for post in all_posts:
+                post_dict = {
+                    "id": post.id,
+                    "user": str(post.user),
+                    "title": post.title,
+                    "content": post.content,
+                    "created": post.created,
+                    "imageURLs": post.imageURLs,
+                    "videoURLs": post.videoURLs,
+                }
+                try:
+                    post_dict["album"] = post.album.id
+                except:
+                    post_dict["album"] = None
+                response["posts"].append(post_dict)
+            return JsonResponse(response, status=200)
+        except:
+            return JsonResponse({}, status=200)
     elif request.method == "POST":
         if not check_user(request):
             return JsonResponse({"message":"not authenticated"}, status=401)
@@ -111,17 +114,20 @@ def handle_post(request):
 @csrf_exempt
 def handle_album(request):
     if request.method == "GET":
-        all_albums = Album.objects.all().order_by('-created')
-        response = {"albums": []}
-        for album in all_albums:
-            response["albums"].append({
-                "id": album.id,
-                "title": album.title,
-                "description": album.description,
-                "imageURL": album.imageURL,
-                "created": album.created
-            })
-        return JsonResponse(response, status=200)
+        try:
+            all_albums = Album.objects.all().order_by('-created')
+            response = {"albums": []}
+            for album in all_albums:
+                response["albums"].append({
+                    "id": album.id,
+                    "title": album.title,
+                    "description": album.description,
+                    "imageURL": album.imageURL,
+                    "created": album.created
+                })
+            return JsonResponse(response, status=200)
+        except:
+            return JsonResponse({}, status=200)
     elif request.method == "POST":
         if not check_user(request):
             return JsonResponse({"message":"not authenticated"}, status=401)
