@@ -1,5 +1,5 @@
 {% load static %}
-<header class="navbar navbar-expand-sm navbar-dark fixed-top">
+<header class="navbar navbar-expand-md navbar-dark fixed-top">
     <a class="navbar-brand" href="{% url 'home' %}">
         <img alt="" src="{% static 'images/heart.svg' %}">
         Together
@@ -18,14 +18,18 @@
             <li class="nav-item">
                 <a class="nav-link" href="#">
                     <img alt="" height="24px" width="24px" src="{% static 'images/album.svg' %}">
-                    Albums
-                </a>
+                    Albums</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="#">
                     <img alt="" height="24px" width="24px" src="{% static 'images/couple.svg' %}">
                     About Us
                 </a>
+            </li>
+        </ul>
+        <ul class="navbar-nav flex-row col-md-1 ml-md-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'logout' %}">Logout</a>
             </li>
         </ul>
     </div>

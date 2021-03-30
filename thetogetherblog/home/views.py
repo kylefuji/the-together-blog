@@ -11,6 +11,12 @@ from django.core.exceptions import ObjectDoesNotExist
 import uuid
 
 def index(request):
+    print(request.user)
+    if check_staff(request):
+        return render(request, 'home/index.html', {'staff':request.user, 'sliderRange':range(9)})
+    elif check_login(request):
+        return render(request, 'home/index.html', {'login':request.user, 'sliderRange':range(9)})
+    print("Hello")
     return render(request, 'home/index.html', {'sliderRange':range(9)})
 
 def login_redirect(request):
@@ -35,10 +41,19 @@ def logout_redirect(request):
     logout(request)
     return redirect(index)
 
-def check_user(request):
+def check_staff(request):
     try:
         current_user = request.user
         User.objects.get(username=current_user, is_staff=True) 
+        return True
+    except:
+        return False
+
+def check_login(request):
+    try:
+        current_user = request.user
+        user = User.objects.get(username=current_user) 
+        print(user)
         return True
     except:
         return False
@@ -68,7 +83,7 @@ def handle_post(request):
         except:
             return JsonResponse({}, status=200)
     elif request.method == "POST":
-        if not check_user(request):
+        if not check_staff(request):
             return JsonResponse({"message":"not authenticated"}, status=401)
         try:
             body = json.loads(request.body)
@@ -129,7 +144,7 @@ def handle_album(request):
         except:
             return JsonResponse({}, status=200)
     elif request.method == "POST":
-        if not check_user(request):
+        if not check_staff(request):
             return JsonResponse({"message":"not authenticated"}, status=401)
         try:
             body = json.loads(request.body)
@@ -167,7 +182,7 @@ def handle_album_by_id(request, album_id):
         except:
             return JsonResponse({}, status=200)
 
-    elif request.method == "PUT" and check_user(request):
+    elif request.method == "PUT" and check_staff(request):
         try:
             body = json.loads(request.body)
             album = Album.objects.get(id=album_id)
@@ -194,7 +209,7 @@ def handle_album_by_id(request, album_id):
         except:
             return JsonResponse({"message":"could not update album"}, status=400)
 
-    elif request.method == "POST" and check_user(request):
+    elif request.method == "POST" and check_staff(request):
         try:
             body = json.loads(request.body)
             album = Album.objects.create(id=album_id, title=body["title"], \
@@ -213,7 +228,7 @@ def handle_album_by_id(request, album_id):
         except:
             return JsonResponse({"message":"could not create album"}, status=400)
     
-    elif request.method == "DELETE" and check_user(request):
+    elif request.method == "DELETE" and check_staff(request):
         try:
             album = Album.objects.get(id=album_id)
             album.delete()
@@ -243,7 +258,7 @@ def handle_post_by_id(request, post_id):
             return JsonResponse(response)
         except:
             return JsonResponse({}, status=200)
-    elif request.method == "PUT" and check_user(request):
+    elif request.method == "PUT" and check_staff(request):
         try:
             body = json.loads(request.body)
             post = Post.objects.get(id=post_id)
@@ -281,7 +296,7 @@ def handle_post_by_id(request, post_id):
             return JsonResponse(response, status=200)
         except:
             return JsonResponse({"message":"could not update post"}, status=400)
-    elif request.method == "POST" and check_user(request):
+    elif request.method == "POST" and check_staff(request):
         try:
             current_user = request.user
             body = json.loads(request.body)
@@ -318,7 +333,7 @@ def handle_post_by_id(request, post_id):
         except:
             return JsonResponse({"message":"could not create post"}, status=400)
 
-    elif request.method == "DELETE" and check_user(request):
+    elif request.method == "DELETE" and check_staff(request):
         try:
             post = Post.objects.get(id=post_id)
             post.delete()

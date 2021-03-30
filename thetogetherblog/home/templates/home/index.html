@@ -13,7 +13,13 @@
         <title>The Together Blog</title>
     </head>
     <body>
-        {% include "navbar.html" %}
+        {% if staff %}
+            {% include "navbarstaff.html" %}
+        {% elif login %}
+            {% include "navbarloggedin.html" %}
+        {% else %}
+            {% include "navbar.html" %}
+        {% endif %}
         <div class="container" style="max-width: 80% !important;">
             <div class="row" style="margin-top: 5em;">
                 <div class="col-lg-8">
