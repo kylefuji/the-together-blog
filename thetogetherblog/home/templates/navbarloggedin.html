@@ -29,13 +29,16 @@
         </ul>
         <ul class="navbar-nav flex-row col-md-1 ml-md-auto">
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                <a class="nav-link" href="{% url 'logout' %}">
+                    <img alt="" height="24px" width="24px" src="{% static 'images/profile.svg' %}">
+                    Logout
+                </a>
             </li>
         </ul>
     </div>
 </header>
 <style>
     .navbar{
-        background-color: rgb(53, 21, 128);
+        background-color: rgb(69, 69, 69);
     }
 </style>
