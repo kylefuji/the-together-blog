@@ -93,7 +93,7 @@ if os.environ.get('GITHUB_WORKFLOW'):
     DATABASES = {
         'default': {
            'ENGINE': 'django.db.backends.postgresql',
-           'NAME': 'github_actions',
+           'NAME': 'thetogetherblog',
            'USER': 'postgres',
            'PASSWORD': 'postgres',
            'HOST': 'localhost',
