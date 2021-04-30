@@ -65,3 +65,10 @@ jobs:
           python manage.py makemigrations home
           python manage.py migrate
           python manage.py test
+      - name: code coverage
+      - uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
+          files: ./coverage.xml # path to report file
+          fail_ci_if_error: true # optional (default = false)
+          verbose: true # optional (default = false)
