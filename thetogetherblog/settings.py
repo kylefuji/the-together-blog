@@ -79,8 +79,12 @@ WSGI_APPLICATION = 'thetogetherblog.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'thetogetherblog',
+        'USER': 'kyle',
+        'PASSWORD': 'x9SDV294dvsNkNNLwr9RR1KMASDOL9fwvjsvowO9',
+        'HOST': 'localhost',
+        'PORT': ''
     }
 }
 
