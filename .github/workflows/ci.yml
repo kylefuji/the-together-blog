@@ -24,9 +24,6 @@ jobs:
       postgres:
         image: postgres
 
-        env:
-        POSTGRES_PASSWORD: postgres
-
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -46,11 +43,6 @@ jobs:
           npm ci
       - name: connect to database
         run: node client.js
-        env:
-          # The hostname used to communicate with the PostgreSQL service container
-          POSTGRES_HOST: postgres
-          # The default PostgreSQL port
-          POSTGRES_PORT: 5432
       # - name: Lint with flake8
       #   run: |
       #   # stop the build if there are Python syntax errors or undefined names
