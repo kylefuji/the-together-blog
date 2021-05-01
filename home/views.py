@@ -10,14 +10,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
 import uuid
 
+INDEX_HTML = 'home/index.html'
+
 def index(request):
-    print(request.user)
     if check_staff(request):
-        return render(request, 'home/index.html', {'staff':request.user, 'sliderRange':range(9)})
+        return render(request, 'INDEX_HTML', {'staff':request.user, 'sliderRange':range(9)})
     elif check_login(request):
-        return render(request, 'home/index.html', {'login':request.user, 'sliderRange':range(9)})
-    print("Hello")
-    return render(request, 'home/index.html', {'sliderRange':range(9)})
+        return render(request, 'INDEX_HTML', {'login':request.user, 'sliderRange':range(9)})
+    return render(request, 'INDEX_HTML', {'sliderRange':range(9)})
 
 def login_redirect(request):
     if request.method == "POST":
@@ -46,16 +46,15 @@ def check_staff(request):
         current_user = request.user
         User.objects.get(username=current_user, is_staff=True) 
         return True
-    except:
+    except ObjectDoesNotExist:
         return False
 
 def check_login(request):
     try:
         current_user = request.user
         user = User.objects.get(username=current_user) 
-        print(user)
         return True
-    except:
+    except ObjectDoesNotExist:
         return False
 
 @csrf_exempt
