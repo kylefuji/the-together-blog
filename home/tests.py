@@ -21,7 +21,7 @@ class TestLogin(TestCase):
         self.c = Client()
 
     # Login tests
-    def testLoginNotAuthenticated(self):
+    def testInvalidLoginInfo(self):
         body = {
             "username": '',
             "password": ''
@@ -29,7 +29,15 @@ class TestLogin(TestCase):
         response = self.c.post(reverse('login'), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 401)
 
-    def testLoginAuthenticated(self):
+    def testInvalidLoginContentType(self):
+        body = {
+            "username": '',
+            "password": ''
+        }
+        response = self.c.post(reverse('login'), body)
+        self.assertEquals(response.status_code, 401)
+
+    def testLogin(self):
         body = {
             "username": self.test_admin.username,
             "password": self.adminPassword
