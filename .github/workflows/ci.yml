@@ -3,7 +3,6 @@ name: ci
 on:
   push:
     branches:
-      - dev
       - main
   pull_request:
     branches:
@@ -17,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6,3.7, 3.8, 3.9]
+        python-version: [3.6, 3.7, 3.8, 3.9]
 
     services:
       postgres:
@@ -38,6 +37,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          # Disabling shallow clone is recommended for improving relevancy of reporting
+          fetch-depth: 0
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
@@ -65,3 +67,23 @@ jobs:
           python manage.py makemigrations home
           python manage.py migrate
           python manage.py test
+
+      - name: Run code coverage and generate report
+        run: |
+          python -m coverage erase
+          python -m coverage run manage.py test
+          python -m coverage report
+          python -m coverage xml
+      - name: Upload codecov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
+          files: ./coverage.xml # path to report file
+          fail_ci_if_error: true # optional (default = false)
+          verbose: true # optional (default = false)
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          
