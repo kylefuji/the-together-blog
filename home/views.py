@@ -34,6 +34,11 @@ def handle_login(request):
 
 @csrf_exempt
 def handle_logout(request):
+    if not check_login(request):
+        response = {
+            "message": "user not logged in"
+        }
+        return JsonResponse(response, status=401)
     if request.method != "DELETE":
         logout(request)
         response = {
@@ -196,8 +201,6 @@ def handle_album_by_id(request, album_id):
                     album.description = body[key]
                 elif key == "imageURL":
                     album.imageURL = body[key]
-                elif key == "created":
-                    album.created = body[key]
                 else:
                     return JsonResponse({"message":"could not update album"}, status=400)
             album.save()
@@ -268,7 +271,7 @@ def handle_post_by_id(request, post_id):
             for key in body:
                 if key == "title":
                     post.title = body[key]
-                elif key == "description":
+                elif key == "content":
                     post.content = body[key]
                 elif key == "imageURLs":
                     post.imageURLs = body[key]

@@ -9,6 +9,10 @@ CONTENT_JSON = "application/json"
 TITLE = "test title"
 CONTENT = "test content"
 DESCRIPTION = "test description"
+IMAGEURLS = ["https://images.all-free-download.com/images/graphicthumb/river_dane_563933.jpg", 
+"https://thumbs.dreamstime.com/b/sad-panorama-neutral-tones-trees-brushes-near-stones-close-up-go-to-fog-to-incognito-nice-scene-some-space-173431211.jpg"]
+VIDEOURLS = ["https://www.youtube.com/watch?v=UOZpCJhxv-w", "https://www.youtube.com/watch?v=ZOMiENsrhPU"]
+IMAGEURL = "https://images.all-free-download.com/images/graphicthumb/river_dane_563933.jpg"
 
 class TestLogin(TestCase):
     def setUp(self):
@@ -16,6 +20,7 @@ class TestLogin(TestCase):
         self.test_admin = User.objects.create_superuser('test', password=self.adminPassword)
         self.c = Client()
 
+    # Login tests
     def testLoginNotAuthenticated(self):
         body = {
             "username": '',
@@ -32,6 +37,35 @@ class TestLogin(TestCase):
         response = self.c.post(reverse('login'), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 200)
 
+    def testWrongMethodLogin(self):
+        response = self.c.get(reverse('login'))
+        self.assertEquals(response.status_code, 405)
+
+    # Logout tests
+    def testLogoutNotAuthenticated(self):
+        response = self.c.get(reverse('logout'))
+        self.assertEquals(response.status_code, 401)
+
+    def testWrongMethodLogout(self):
+        body = {
+            "username": self.test_admin.username,
+            "password": self.adminPassword
+        }
+        self.c.post(reverse('login'), body, content_type=CONTENT_JSON)
+        response = self.c.delete(reverse('logout'))
+        self.assertEquals(response.status_code, 405)
+
+    def testLogout(self):
+        body = {
+            "username": self.test_admin.username,
+            "password": self.adminPassword
+        }
+        self.c.post(reverse('login'), body, content_type=CONTENT_JSON)
+        response = self.c.get(reverse('logout'))
+        self.assertEquals(response.status_code, 200)
+
+
+
 class TestApi(TestCase):
     def setUp(self):
         self.adminPassword = '12345'
@@ -46,6 +80,7 @@ class TestApi(TestCase):
             title=TITLE,
             description=DESCRIPTION)
 
+    # Posts api tests
     def testGetPosts(self):
         response = self.c.get(reverse('api_post'))
         self.assertEquals(response.status_code, 200)
@@ -53,7 +88,10 @@ class TestApi(TestCase):
     def testUnauthenticatedNewPost(self):
         body = {
             "title": TITLE,
-            "content": CONTENT
+            "content": CONTENT,
+            "imageURLs": IMAGEURLS,
+            "videoURLs": VIDEOURLS,
+            "album": self.test_album.id
         }
         response = self.c.post(reverse('api_post'), body)
         self.assertEquals(response.status_code, 401)
@@ -69,12 +107,29 @@ class TestApi(TestCase):
         self.client = self.c.login(username=self.test_admin.username, password=self.adminPassword)
         body = {
             "title": TITLE,
-            "content": CONTENT
+            "content": CONTENT,
+            "imageURLs": IMAGEURLS,
+            "videoURLs": VIDEOURLS,
+            "album": self.test_album.id
         }
         response = self.c.post(reverse('api_post'), body, content_type=CONTENT_JSON)
         self.testPost = response.json()
         self.assertEquals(response.status_code, 201)
 
+    def testInvalidPostMethod(self):
+        self.client = self.c.login(username=self.test_admin.username, password=self.adminPassword)
+        body = {
+            "title": TITLE,
+            "content": CONTENT,
+            "imageURLs": IMAGEURLS,
+            "videoURLs": VIDEOURLS,
+            "album": self.test_album.id
+        }
+        response = self.c.put(reverse('api_post'), body, content_type=CONTENT_JSON)
+        self.testPost = response.json()
+        self.assertEquals(response.status_code, 405)
+
+    # Albums api tests
     def testGetAlbums(self):
         response = self.c.get(reverse('api_album'))
         self.assertEquals(response.status_code, 200)
@@ -82,7 +137,8 @@ class TestApi(TestCase):
     def testUnauthenticatedNewAlbum(self):
         body = {
             "title": TITLE,
-            "description": DESCRIPTION
+            "description": DESCRIPTION,
+            "imageURL": IMAGEURL
         }
         response = self.c.post(reverse('api_album'), body)
         self.assertEquals(response.status_code, 401)
@@ -98,11 +154,24 @@ class TestApi(TestCase):
         self.client = self.c.login(username=self.test_admin.username, password=self.adminPassword)
         body = {
             "title": TITLE,
-            "description": DESCRIPTION
+            "description": DESCRIPTION,
+            "imageURL": IMAGEURL
         }
         response = self.c.post(reverse('api_album'), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 201)
+
+    def testInvalidAlbumMethod(self):
+        self.client = self.c.login(username=self.test_admin.username, password=self.adminPassword)
+        body = {
+            "title": TITLE,
+            "description": DESCRIPTION,
+            "imageURL": IMAGEURL
+        }
+        response = self.c.put(reverse('api_album'), body, content_type=CONTENT_JSON)
+        self.assertEquals(response.status_code, 405)
     
+
+    # Post by ID tests
     def testGetInvalidPostById(self):
         kwargs = {
             "post_id": "1"
@@ -124,7 +193,11 @@ class TestApi(TestCase):
             "post_id": self.test_post.id
         }
         body = {
-            "title": TITLE
+            "title": TITLE,
+            "content": CONTENT,
+            "imageURLs": IMAGEURLS,
+            "videoURLs": VIDEOURLS,
+            "album": self.test_album.id
         }
         response = self.c.put(reverse('api_post_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 401)
@@ -135,7 +208,11 @@ class TestApi(TestCase):
             "post_id": self.test_post.id
         }
         body = {
-            "title": TITLE
+            "title": TITLE,
+            "content": CONTENT,
+            "imageURLs": IMAGEURLS,
+            "videoURLs": VIDEOURLS,
+            "album": self.test_album.id
         }
         response = self.c.put(reverse('api_post_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 200)
@@ -147,7 +224,10 @@ class TestApi(TestCase):
         }
         body = {
             "title": TITLE,
-            "content": CONTENT
+            "content": CONTENT,
+            "imageURLs": IMAGEURLS,
+            "videoURLs": VIDEOURLS,
+            "album": self.test_album.id
         }
         response = self.c.post(reverse('api_post_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 401)
@@ -159,7 +239,10 @@ class TestApi(TestCase):
         }
         body = {
             "title": TITLE,
-            "content": CONTENT
+            "content": CONTENT,
+            "imageURLs": IMAGEURLS,
+            "videoURLs": VIDEOURLS,
+            "album": self.test_album.id
         }
         response = self.c.post(reverse('api_post_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 201)
@@ -172,7 +255,10 @@ class TestApi(TestCase):
         }
         body = {
             "title": TITLE,
-            "content": CONTENT
+            "content": CONTENT,
+            "imageURLs": IMAGEURLS,
+            "videoURLs": VIDEOURLS,
+            "album": self.test_album.id
         }
         self.c.post(reverse('api_post_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         response = self.c.post(reverse('api_post_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
@@ -201,6 +287,8 @@ class TestApi(TestCase):
         response = self.c.delete(reverse('api_post_id', kwargs=kwargs))
         self.assertEquals(response.status_code, 400)
 
+
+    # Album by id tests
     def testGetInvalidAlbumById(self):
         kwargs = {
             "album_id": "1"
@@ -222,7 +310,9 @@ class TestApi(TestCase):
             "album_id": self.test_album.id
         }
         body = {
-            "title": TITLE
+            "title": TITLE,
+            "description": DESCRIPTION,
+            "imageURL": IMAGEURL
         }
         response = self.c.put(reverse('api_album_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 401)
@@ -233,7 +323,9 @@ class TestApi(TestCase):
             "album_id": self.test_album.id
         }
         body = {
-            "title": TITLE
+           "title": TITLE,
+            "description": DESCRIPTION,
+            "imageURL": IMAGEURL
         }
         response = self.c.put(reverse('api_album_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 200)
@@ -245,7 +337,8 @@ class TestApi(TestCase):
         }
         body = {
             "title": TITLE,
-            "description": DESCRIPTION
+            "description": DESCRIPTION,
+            "imageURL": IMAGEURL
         }
         response = self.c.post(reverse('api_album_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 401)
@@ -257,7 +350,8 @@ class TestApi(TestCase):
         }
         body = {
             "title": TITLE,
-            "description": DESCRIPTION
+            "description": DESCRIPTION,
+            "imageURL": IMAGEURL
         }
         response = self.c.post(reverse('api_album_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 201)
@@ -270,7 +364,8 @@ class TestApi(TestCase):
         }
         body = {
             "title": TITLE,
-            "description": DESCRIPTION
+            "description": DESCRIPTION,
+            "imageURL": IMAGEURL
         }
         self.c.post(reverse('api_album_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         response = self.c.post(reverse('api_album_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
