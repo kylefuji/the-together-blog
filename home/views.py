@@ -8,12 +8,25 @@ import json
 from django.http.response import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
 import uuid
+
+NOT_AUTH = "not authenticated"
+POST_CREATE_DENY = "could not create post"
+ALBUM_CREATE_DENY = "could not create album"
+POST_UPDATE_DENY = "could not update post"
+ALBUM_UPDATE_DENY = "could not update album"
 
 @csrf_exempt
 def handle_login(request):
     if request.method == "POST":
-        body = json.loads(request.body)
+        try:
+            body = json.loads(request.body)
+        except json.JSONDecodeError:
+            response = {
+                "message": "invalid login attempt"
+            }
+            return JsonResponse(response, status=401)
         username = body['username']
         password = body['password']
         user = authenticate(request, username=username, password=password)
@@ -84,15 +97,15 @@ def handle_post(request):
                 }
                 try:
                     post_dict["album"] = post.album.id
-                except:
+                except AttributeError:
                     post_dict["album"] = None
                 response["posts"].append(post_dict)
             return JsonResponse(response, status=200)
-        except:
+        except ObjectDoesNotExist:
             return JsonResponse({}, status=200)
     elif request.method == "POST":
         if not check_staff(request):
-            return JsonResponse({"message":"not authenticated"}, status=401)
+            return JsonResponse({"message":NOT_AUTH}, status=401)
         try:
             body = json.loads(request.body)
             current_user = request.user
@@ -112,7 +125,7 @@ def handle_post(request):
                     album = Album.objects.get(id=body["album"])
                     post.album = album
                     post.save()
-                except:
+                except ObjectDoesNotExist:
                     None
 
             response = {
@@ -126,11 +139,17 @@ def handle_post(request):
             }
             try:
                 response["album"] = post.album.id
-            except:
+            except AttributeError:
                 response["album"] = None
             return JsonResponse(response, status=201)
-        except:
-            return JsonResponse({"message":"could not create post"}, status=400)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message":POST_CREATE_DENY}, status=400)
+        except IntegrityError:
+            return JsonResponse({"message":POST_CREATE_DENY}, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({"message":POST_CREATE_DENY}, status=400)
+        except KeyError:
+            return JsonResponse({"message":POST_CREATE_DENY}, status=400)
     else:
         return JsonResponse({"message":"method not allowed"}, status=405)
 
@@ -149,11 +168,11 @@ def handle_album(request):
                     "created": album.created
                 })
             return JsonResponse(response, status=200)
-        except:
+        except ObjectDoesNotExist:
             return JsonResponse({}, status=200)
     elif request.method == "POST":
         if not check_staff(request):
-            return JsonResponse({"message":"not authenticated"}, status=401)
+            return JsonResponse({"message":NOT_AUTH}, status=401)
         try:
             body = json.loads(request.body)
             album = Album.objects.create(id=str(uuid.uuid4()), title=body["title"], \
@@ -169,8 +188,14 @@ def handle_album(request):
                 "created": album.created
             }
             return JsonResponse(response, status=201)
-        except:
-            return JsonResponse({"message":"could not create album"}, status=400)
+        except IntegrityError:
+            return JsonResponse({"message":ALBUM_CREATE_DENY}, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({"message":ALBUM_CREATE_DENY}, status=400)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message":ALBUM_CREATE_DENY}, status=400)
+        except KeyError:
+            return JsonResponse({"message":ALBUM_CREATE_DENY}, status=400)
     else:
         return JsonResponse({"message":"method not allowed"}, status=405)
 
@@ -187,7 +212,7 @@ def handle_album_by_id(request, album_id):
                 "created": album.created
             }
             return JsonResponse(response, status=200)
-        except:
+        except ObjectDoesNotExist:
             return JsonResponse({}, status=200)
 
     elif request.method == "PUT" and check_staff(request):
@@ -202,7 +227,7 @@ def handle_album_by_id(request, album_id):
                 elif key == "imageURL":
                     album.imageURL = body[key]
                 else:
-                    return JsonResponse({"message":"could not update album"}, status=400)
+                    return JsonResponse({"message":ALBUM_UPDATE_DENY}, status=400)
             album.save()
             response = {
                 "id": album.id,
@@ -212,8 +237,12 @@ def handle_album_by_id(request, album_id):
                 "created": album.created
             }
             return JsonResponse(response, status=200)
-        except:
-            return JsonResponse({"message":"could not update album"}, status=400)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message":ALBUM_UPDATE_DENY}, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({"message":ALBUM_UPDATE_DENY}, status=400)
+        except KeyError:
+            return JsonResponse({"message":ALBUM_UPDATE_DENY}, status=400)
 
     elif request.method == "POST" and check_staff(request):
         try:
@@ -231,17 +260,21 @@ def handle_album_by_id(request, album_id):
                 "created": album.created
             }
             return JsonResponse(response, status=201)
-        except:
-            return JsonResponse({"message":"could not create album"}, status=400)
+        except IntegrityError:
+            return JsonResponse({"message":ALBUM_CREATE_DENY}, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({"message":ALBUM_CREATE_DENY}, status=400)
+        except KeyError:
+            return JsonResponse({"message":ALBUM_CREATE_DENY}, status=400)
     
     elif request.method == "DELETE" and check_staff(request):
         try:
             album = Album.objects.get(id=album_id)
             album.delete()
             return JsonResponse({"message":"album deleted"}, status=200)
-        except:
+        except ObjectDoesNotExist:
             return JsonResponse({"message":"could not delete album"}, status=400)
-    return JsonResponse({"message":"not authenticated"}, status=401)
+    return JsonResponse({"message":NOT_AUTH}, status=401)
 
 @csrf_exempt
 def handle_post_by_id(request, post_id):
@@ -259,10 +292,10 @@ def handle_post_by_id(request, post_id):
             }
             try:
                 response["album"] = post.album.id
-            except:
+            except AttributeError:
                 response["album"] = None
             return JsonResponse(response)
-        except:
+        except ObjectDoesNotExist:
             return JsonResponse({}, status=200)
     elif request.method == "PUT" and check_staff(request):
         try:
@@ -281,10 +314,10 @@ def handle_post_by_id(request, post_id):
                     try:
                         album = Album.objects.get(id=body[key])
                         post.album = album
-                    except:
+                    except ObjectDoesNotExist:
                         None
                 else:
-                    return JsonResponse({"message":"could not update post"}, status=400)
+                    return JsonResponse({"message":POST_UPDATE_DENY}, status=400)
             post.save()
             response = {
                 "id": post.id,
@@ -297,11 +330,16 @@ def handle_post_by_id(request, post_id):
             }
             try:
                 response["album"] = post.album.id
-            except:
+            except AttributeError:
                 response["album"] = None
             return JsonResponse(response, status=200)
-        except:
-            return JsonResponse({"message":"could not update post"}, status=400)
+        except ObjectDoesNotExist:
+            return JsonResponse({"message":POST_UPDATE_DENY}, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({"message":POST_UPDATE_DENY}, status=400)
+        except KeyError:
+            return JsonResponse({"message":POST_UPDATE_DENY}, status=400)
+
     elif request.method == "POST" and check_staff(request):
         try:
             current_user = request.user
@@ -320,7 +358,7 @@ def handle_post_by_id(request, post_id):
                     album = Album.objects.get(id=body["album"])
                     post.album = album
                     post.save()
-                except:
+                except ObjectDoesNotExist:
                     None
             response = {
                 "id": post.id,
@@ -333,17 +371,21 @@ def handle_post_by_id(request, post_id):
             }
             try:
                 response["album"] = post.album.id
-            except:
+            except AttributeError:
                 response["album"] = None
             return JsonResponse(response, status=201)
-        except:
-            return JsonResponse({"message":"could not create post"}, status=400)
+        except IntegrityError:
+            return JsonResponse({"message":POST_CREATE_DENY}, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({"message":POST_CREATE_DENY}, status=400)
+        except KeyError:
+            return JsonResponse({"message":POST_CREATE_DENY}, status=400)
 
     elif request.method == "DELETE" and check_staff(request):
         try:
             post = Post.objects.get(id=post_id)
             post.delete()
             return JsonResponse({"message":"post deleted"}, status=200)
-        except:
+        except ObjectDoesNotExist:
             return JsonResponse({"message":"could not delete post"}, status=400)
-    return JsonResponse({"message":"not authenticated"}, status=401)
+    return JsonResponse({"message":NOT_AUTH}, status=401)
