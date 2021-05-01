@@ -14,10 +14,10 @@ INDEX_HTML = 'home/index.html'
 
 def index(request):
     if check_staff(request):
-        return render(request, 'INDEX_HTML', {'staff':request.user, 'sliderRange':range(9)})
+        return render(request, INDEX_HTML, {'staff':request.user, 'sliderRange':range(9)})
     elif check_login(request):
-        return render(request, 'INDEX_HTML', {'login':request.user, 'sliderRange':range(9)})
-    return render(request, 'INDEX_HTML', {'sliderRange':range(9)})
+        return render(request, INDEX_HTML, {'login':request.user, 'sliderRange':range(9)})
+    return render(request, INDEX_HTML, {'sliderRange':range(9)})
 
 def login_redirect(request):
     if request.method == "POST":
