@@ -52,7 +52,7 @@ def check_staff(request):
 def check_login(request):
     try:
         current_user = request.user
-        user = User.objects.get(username=current_user) 
+        User.objects.get(username=current_user) 
         return True
     except ObjectDoesNotExist:
         return False

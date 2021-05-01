@@ -5,6 +5,11 @@ from django.urls import reverse
 from home.models import Post, Album
 import uuid
 
+CONTENT_JSON = "application/json"
+TITLE = "test title"
+CONTENT = "test content"
+DESCRIPTION = "test description"
+
 class TestLogin(TestCase):
     def setUp(self):
         self.adminPassword = '12345'
@@ -35,13 +40,13 @@ class TestApi(TestCase):
         self.test_admin = User.objects.create_superuser('test', password=self.adminPassword)
         self.c = Client()
         self.test_post = Post.objects.create(id=str(uuid.uuid4()),
-            title="test post",
-            content="123456615323",
+            title=TITLE,
+            content=CONTENT,
             user=self.test_admin)
         
         self.test_album = Album.objects.create(id=str(uuid.uuid4()),
-            title="test album",
-            description="test descr")
+            title=TITLE,
+            description=DESCRIPTION)
 
     def testGetPosts(self):
         response = self.c.get(reverse('api_post'))
@@ -49,8 +54,8 @@ class TestApi(TestCase):
 
     def testUnauthenticatedNewPost(self):
         body = {
-            "title": "test",
-            "content": "test content"
+            "title": TITLE,
+            "content": CONTENT
         }
         response = self.c.post(reverse('api_post'), body)
         self.assertEquals(response.status_code, 401)
@@ -59,16 +64,16 @@ class TestApi(TestCase):
     def testAuthenticatedInvalidNewPost(self):
         self.client = self.c.login(username=self.test_admin.username, password=self.adminPassword)
         body = {}
-        response = self.c.post(reverse('api_post'), body, content_type="application/json")
+        response = self.c.post(reverse('api_post'), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 400)
     
     def testAuthenticatedNewPost(self):
         self.client = self.c.login(username=self.test_admin.username, password=self.adminPassword)
         body = {
-            "title": "test",
-            "content": "test content"
+            "title": TITLE,
+            "content": CONTENT
         }
-        response = self.c.post(reverse('api_post'), body, content_type="application/json")
+        response = self.c.post(reverse('api_post'), body, content_type=CONTENT_JSON)
         self.testPost = response.json()
         self.assertEquals(response.status_code, 201)
 
@@ -78,8 +83,8 @@ class TestApi(TestCase):
 
     def testUnauthenticatedNewAlbum(self):
         body = {
-            "title": "test",
-            "description": "test description"
+            "title": TITLE,
+            "description": DESCRIPTION
         }
         response = self.c.post(reverse('api_album'), body)
         self.assertEquals(response.status_code, 401)
@@ -88,16 +93,16 @@ class TestApi(TestCase):
     def testAuthenticatedInvalidNewAlbum(self):
         self.client = self.c.login(username=self.test_admin.username, password=self.adminPassword)
         body = {}
-        response = self.c.post(reverse('api_album'), body, content_type="application/json")
+        response = self.c.post(reverse('api_album'), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 400)
     
     def testAuthenticatedNewAlbum(self):
         self.client = self.c.login(username=self.test_admin.username, password=self.adminPassword)
         body = {
-            "title": "test",
-            "description": "test description"
+            "title": TITLE,
+            "description": DESCRIPTION
         }
-        response = self.c.post(reverse('api_album'), body, content_type="application/json")
+        response = self.c.post(reverse('api_album'), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 201)
     
     def testGetInvalidPostById(self):
@@ -121,9 +126,9 @@ class TestApi(TestCase):
             "post_id": self.test_post.id
         }
         body = {
-            "title": "edited post"
+            "title": TITLE
         }
-        response = self.c.put(reverse('api_post_id', kwargs=kwargs), body, content_type="application/json")
+        response = self.c.put(reverse('api_post_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 401)
 
     def testAuthenticatedEditPostById(self):
@@ -132,9 +137,9 @@ class TestApi(TestCase):
             "post_id": self.test_post.id
         }
         body = {
-            "title": "edited post"
+            "title": TITLE
         }
-        response = self.c.put(reverse('api_post_id', kwargs=kwargs), body, content_type="application/json")
+        response = self.c.put(reverse('api_post_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 200)
         self.assertNotEquals(response.json(), {})
 
@@ -143,10 +148,10 @@ class TestApi(TestCase):
             "post_id": "1"
         }
         body = {
-            "title": "new post",
-            "content": "Hello"
+            "title": TITLE,
+            "content": CONTENT
         }
-        response = self.c.post(reverse('api_post_id', kwargs=kwargs), body, content_type="application/json")
+        response = self.c.post(reverse('api_post_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 401)
 
     def testAuthenticatedCreatePostById(self):
@@ -155,10 +160,10 @@ class TestApi(TestCase):
             "post_id": "1"
         }
         body = {
-            "title": "new post",
-            "content": "Hello"
+            "title": TITLE,
+            "content": CONTENT
         }
-        response = self.c.post(reverse('api_post_id', kwargs=kwargs), body, content_type="application/json")
+        response = self.c.post(reverse('api_post_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 201)
         self.assertNotEquals(response.json(), {})
 
@@ -168,11 +173,11 @@ class TestApi(TestCase):
             "post_id": "1"
         }
         body = {
-            "title": "new post",
-            "content": "Hello"
+            "title": TITLE,
+            "content": CONTENT
         }
-        self.c.post(reverse('api_post_id', kwargs=kwargs), body, content_type="application/json")
-        response = self.c.post(reverse('api_post_id', kwargs=kwargs), body, content_type="application/json")
+        self.c.post(reverse('api_post_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
+        response = self.c.post(reverse('api_post_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 400)
 
     def testUnauthenticatedDeletePostById(self):
@@ -219,9 +224,9 @@ class TestApi(TestCase):
             "album_id": self.test_album.id
         }
         body = {
-            "title": "edited post"
+            "title": TITLE
         }
-        response = self.c.put(reverse('api_album_id', kwargs=kwargs), body, content_type="application/json")
+        response = self.c.put(reverse('api_album_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 401)
 
     def testAuthenticatedEditAlbumById(self):
@@ -230,9 +235,9 @@ class TestApi(TestCase):
             "album_id": self.test_album.id
         }
         body = {
-            "title": "edited post"
+            "title": TITLE
         }
-        response = self.c.put(reverse('api_album_id', kwargs=kwargs), body, content_type="application/json")
+        response = self.c.put(reverse('api_album_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 200)
         self.assertNotEquals(response.json(), {})
 
@@ -241,10 +246,10 @@ class TestApi(TestCase):
             "album_id": "1"
         }
         body = {
-            "title": "new post",
-            "description": "Hello"
+            "title": TITLE,
+            "description": DESCRIPTION
         }
-        response = self.c.post(reverse('api_album_id', kwargs=kwargs), body, content_type="application/json")
+        response = self.c.post(reverse('api_album_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 401)
 
     def testAuthenticatedCreateAlbumById(self):
@@ -253,10 +258,10 @@ class TestApi(TestCase):
             "album_id": "1"
         }
         body = {
-            "title": "new post",
-            "description": "Hello"
+            "title": TITLE,
+            "description": DESCRIPTION
         }
-        response = self.c.post(reverse('api_album_id', kwargs=kwargs), body, content_type="application/json")
+        response = self.c.post(reverse('api_album_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 201)
         self.assertNotEquals(response.json(), {})
 
@@ -266,11 +271,11 @@ class TestApi(TestCase):
             "album_id": "1"
         }
         body = {
-            "title": "new post",
-            "description": "Hello"
+            "title": TITLE,
+            "description": DESCRIPTION
         }
-        self.c.post(reverse('api_album_id', kwargs=kwargs), body, content_type="application/json")
-        response = self.c.post(reverse('api_album_id', kwargs=kwargs), body, content_type="application/json")
+        self.c.post(reverse('api_album_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
+        response = self.c.post(reverse('api_album_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 400)
 
     def testUnauthenticatedDeleteAlbumById(self):
