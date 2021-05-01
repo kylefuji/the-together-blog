@@ -10,36 +10,40 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
 import uuid
 
-INDEX_HTML = 'home/index.html'
-
-def index(request):
-    if check_staff(request):
-        return render(request, INDEX_HTML, {'staff':request.user, 'sliderRange':range(9)})
-    elif check_login(request):
-        return render(request, INDEX_HTML, {'login':request.user, 'sliderRange':range(9)})
-    return render(request, INDEX_HTML, {'sliderRange':range(9)})
-
-def login_redirect(request):
+@csrf_exempt
+def handle_login(request):
     if request.method == "POST":
-        username = request.POST['username']
-        password = request.POST['password']
-        form = AuthenticationForm(data=request.POST)
-        if form.is_valid():
-            user = authenticate(request, username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect(index)
-        return render(request, 'home/login.html', {'form':form})
-    # check if user is still logged in then redirect to home page:
-    if request.user.is_authenticated:
-        return redirect(index)
-    
-    form = AuthenticationForm()
-    return render(request, 'home/login.html', {'form':form})
+        body = json.loads(request.body)
+        username = body['username']
+        password = body['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            response = {
+                "message": "user logged in"
+            }
+            return JsonResponse(response, status=200)
+        response = {
+            "message": "invalid login attempt"
+        }
+        return JsonResponse(response, status=401)
+    response = {
+        "message": "invalid method"
+    }
+    return JsonResponse(response, status=405)
 
-def logout_redirect(request):
-    logout(request)
-    return redirect(index)
+@csrf_exempt
+def handle_logout(request):
+    if request.method != "DELETE":
+        logout(request)
+        response = {
+            "message": "user logged out"
+        }
+        return JsonResponse(response, status=200)
+    response = {
+        "message": "invalid method"
+    }
+    return JsonResponse(response, status=405)
 
 def check_staff(request):
     try:

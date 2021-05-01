@@ -21,18 +21,16 @@ class TestLogin(TestCase):
             "username": '',
             "password": ''
         }
-        response = self.c.post(reverse('login'), body)
-        self.assertEquals(response.status_code, 200)
-        self.assertTemplateUsed(response, 'home/login.html')
+        response = self.c.post(reverse('login'), body, content_type=CONTENT_JSON)
+        self.assertEquals(response.status_code, 401)
 
     def testLoginAuthenticated(self):
         body = {
             "username": self.test_admin.username,
             "password": self.adminPassword
         }
-        response = self.c.post(reverse('login'), body)
-        self.assertRedirects(response, expected_url=reverse('home'), status_code=302, target_status_code=200)
-
+        response = self.c.post(reverse('login'), body, content_type=CONTENT_JSON)
+        self.assertEquals(response.status_code, 200)
 
 class TestApi(TestCase):
     def setUp(self):
