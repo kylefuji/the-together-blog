@@ -7,6 +7,7 @@ ENV PYTHONUNBUFFERED 1
 ENV DEPLOY 1
 RUN pip install --upgrade pip  
 COPY . ${DockerHOME}
+RUN chmod +x start.sh
 RUN pip install -r requirements.txt  
 EXPOSE 1337
 CMD ["start.sh"]
