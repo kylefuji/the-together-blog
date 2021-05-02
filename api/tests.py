@@ -13,10 +13,12 @@ IMAGEURLS = ["https://images.all-free-download.com/images/graphicthumb/river_dan
 "https://thumbs.dreamstime.com/b/sad-panorama-neutral-tones-trees-brushes-near-stones-close-up-go-to-fog-to-incognito-nice-scene-some-space-173431211.jpg"]
 VIDEOURLS = ["https://www.youtube.com/watch?v=UOZpCJhxv-w", "https://www.youtube.com/watch?v=ZOMiENsrhPU"]
 IMAGEURL = "https://images.all-free-download.com/images/graphicthumb/river_dane_563933.jpg"
+INVALID_ID = "invalid id"
+ADMIN_PASSWORD = "12345"
 
 class TestLogin(TestCase):
     def setUp(self):
-        self.adminPassword = '12345'
+        self.adminPassword = ADMIN_PASSWORD
         self.test_admin = User.objects.create_superuser('test', password=self.adminPassword)
         self.c = Client()
 
@@ -76,7 +78,7 @@ class TestLogin(TestCase):
 
 class TestApi(TestCase):
     def setUp(self):
-        self.adminPassword = '12345'
+        self.adminPassword = ADMIN_PASSWORD
         self.test_admin = User.objects.create_superuser('test', password=self.adminPassword)
         self.c = Client()
         self.test_post = Post.objects.create(id=str(uuid.uuid4()),
@@ -130,7 +132,7 @@ class TestApi(TestCase):
             "content": CONTENT,
             "imageURLs": IMAGEURLS,
             "videoURLs": VIDEOURLS,
-            "album": "invalid id"
+            "album": INVALID_ID
         }
         response = self.c.post(reverse('api_post'), body, content_type=CONTENT_JSON)
         self.testPost = response.json()
@@ -217,7 +219,7 @@ class TestApi(TestCase):
     # Post by ID tests
     def testGetInvalidPostById(self):
         kwargs = {
-            "post_id": "invalid id"
+            "post_id": INVALID_ID
         }
         response = self.c.get(reverse('api_post_id', kwargs=kwargs))
         self.assertEquals(response.status_code, 200)
@@ -248,7 +250,7 @@ class TestApi(TestCase):
     def testAuthenticatedEditPostByIdInvalidId(self):
         self.client = self.c.login(username=self.test_admin.username, password=self.adminPassword)
         kwargs = {
-            "post_id": "invalid id"
+            "post_id": INVALID_ID
         }
         body = {
             "title": TITLE,
@@ -310,7 +312,7 @@ class TestApi(TestCase):
             "content": CONTENT,
             "imageURLs": IMAGEURLS,
             "videoURLs": VIDEOURLS,
-            "album": "invalid id"
+            "album": INVALID_ID
         }
         response = self.c.put(reverse('api_post_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 200)
@@ -378,7 +380,7 @@ class TestApi(TestCase):
             "content": CONTENT,
             "imageURLs": IMAGEURLS,
             "videoURLs": VIDEOURLS,
-            "album": "invalid id"
+            "album": INVALID_ID
         }
         response = self.c.post(reverse('api_post_id', kwargs=kwargs), body, content_type=CONTENT_JSON)
         self.assertEquals(response.status_code, 201)
@@ -441,7 +443,7 @@ class TestApi(TestCase):
     # Album by id tests
     def testGetInvalidAlbumById(self):
         kwargs = {
-            "album_id": "invalid id"
+            "album_id": INVALID_ID
         }
         response = self.c.get(reverse('api_album_id', kwargs=kwargs))
         self.assertEquals(response.status_code, 200)
@@ -493,7 +495,7 @@ class TestApi(TestCase):
     def testAuthenticatedEditAlbumByIdInvalidId(self):
         self.client = self.c.login(username=self.test_admin.username, password=self.adminPassword)
         kwargs = {
-            "album_id": "invalid id"
+            "album_id": INVALID_ID
         }
         body = {
            "title": TITLE,
@@ -506,7 +508,7 @@ class TestApi(TestCase):
     def testAuthenticatedEditAlbumByIdInvalidType(self):
         self.client = self.c.login(username=self.test_admin.username, password=self.adminPassword)
         kwargs = {
-            "album_id": "invalid id"
+            "album_id": INVALID_ID
         }
         body = {
            "title": TITLE,
@@ -608,7 +610,7 @@ class TestApi(TestCase):
     def testAuthenticatedDeleteInvalidAlbumById(self):
         self.client = self.c.login(username=self.test_admin.username, password=self.adminPassword)
         kwargs = {
-            "album_id": "invalid id"
+            "album_id": INVALID_ID
         }
         response = self.c.delete(reverse('api_album_id', kwargs=kwargs))
         self.assertEquals(response.status_code, 400)
