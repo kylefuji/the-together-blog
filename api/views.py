@@ -231,7 +231,7 @@ def handle_post_by_id(request, post_id):
         return create_post(request, post_id)
 
     elif request.method == "DELETE" and check_staff(request):
-        delete_post(request, post_id)
+        return delete_post(request, post_id)
 
     return JsonResponse({"message":NOT_AUTH}, status=401)
 
