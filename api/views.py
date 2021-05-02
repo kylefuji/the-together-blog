@@ -79,7 +79,6 @@ def check_login(request):
     except ObjectDoesNotExist:
         return False
 
-@csrf_exempt
 def handle_post(request):
     if request.method == "GET":
         try:
@@ -142,8 +141,6 @@ def handle_post(request):
             except AttributeError:
                 response["album"] = None
             return JsonResponse(response, status=201)
-        except ObjectDoesNotExist:
-            return JsonResponse({"message":POST_CREATE_DENY}, status=400)
         except IntegrityError:
             return JsonResponse({"message":POST_CREATE_DENY}, status=400)
         except json.JSONDecodeError:
@@ -153,7 +150,6 @@ def handle_post(request):
     else:
         return JsonResponse({"message":"method not allowed"}, status=405)
 
-@csrf_exempt
 def handle_album(request):
     if request.method == "GET":
         try:
@@ -192,14 +188,11 @@ def handle_album(request):
             return JsonResponse({"message":ALBUM_CREATE_DENY}, status=400)
         except json.JSONDecodeError:
             return JsonResponse({"message":ALBUM_CREATE_DENY}, status=400)
-        except ObjectDoesNotExist:
-            return JsonResponse({"message":ALBUM_CREATE_DENY}, status=400)
         except KeyError:
             return JsonResponse({"message":ALBUM_CREATE_DENY}, status=400)
     else:
         return JsonResponse({"message":"method not allowed"}, status=405)
 
-@csrf_exempt
 def handle_album_by_id(request, album_id):
     if request.method == "GET":
         try:
@@ -241,8 +234,6 @@ def handle_album_by_id(request, album_id):
             return JsonResponse({"message":ALBUM_UPDATE_DENY}, status=400)
         except json.JSONDecodeError:
             return JsonResponse({"message":ALBUM_UPDATE_DENY}, status=400)
-        except KeyError:
-            return JsonResponse({"message":ALBUM_UPDATE_DENY}, status=400)
 
     elif request.method == "POST" and check_staff(request):
         try:
@@ -276,7 +267,6 @@ def handle_album_by_id(request, album_id):
             return JsonResponse({"message":"could not delete album"}, status=400)
     return JsonResponse({"message":NOT_AUTH}, status=401)
 
-@csrf_exempt
 def handle_post_by_id(request, post_id):
     if request.method == "GET":
         try:
@@ -336,8 +326,6 @@ def handle_post_by_id(request, post_id):
         except ObjectDoesNotExist:
             return JsonResponse({"message":POST_UPDATE_DENY}, status=400)
         except json.JSONDecodeError:
-            return JsonResponse({"message":POST_UPDATE_DENY}, status=400)
-        except KeyError:
             return JsonResponse({"message":POST_UPDATE_DENY}, status=400)
 
     elif request.method == "POST" and check_staff(request):
