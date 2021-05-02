@@ -91,6 +91,18 @@ DATABASES = {
     }
 }
 
+if os.environ.get('ENV') == "PROD":
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': '{{QOVERY_DATABASE_MY_PSQL_DATABASE}}',
+            'USER': '{{QOVERY_DATABASE_MY_PSQL_USERNAME}}',
+            'PASSWORD': '{{QOVERY_DATABASE_MY_PSQL_PASSWORD}}',
+            'HOST': '{{QOVERY_DATABASE_MY_PSQL_NAME}}',
+            'PORT': '{{QOVERY_DATABASE_MY_PSQL_PORT}}'
+        }
+    }
+
 if os.environ.get('GITHUB_WORKFLOW'):
     DATABASES = {
         'default': {
