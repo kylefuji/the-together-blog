@@ -102,7 +102,7 @@ if os.environ.get('DEPLOY'):
             'USER': os.environ.get("DATABASE_USERNAME"),
             'PASSWORD': os.environ.get("DATABASE_PASSWORD"),
             'HOST': os.environ.get("DATABASE_HOST"),
-            'PORT': os.environ.get("DATABASE_PORT")
+            'PORT': os.environ.get("DATABASE_PORT") 
         }
     }
 
