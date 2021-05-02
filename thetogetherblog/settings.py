@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -91,15 +94,15 @@ DATABASES = {
     }
 }
 
-if os.environ.get('ENV') == "PROD":
+if os.environ.get('DEPLOY'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': '{{QOVERY_DATABASE_MY_PSQL_DATABASE}}',
-            'USER': '{{QOVERY_DATABASE_MY_PSQL_USERNAME}}',
-            'PASSWORD': '{{QOVERY_DATABASE_MY_PSQL_PASSWORD}}',
-            'HOST': '{{QOVERY_DATABASE_MY_PSQL_NAME}}',
-            'PORT': '{{QOVERY_DATABASE_MY_PSQL_PORT}}'
+            'NAME': os.environ.get("DATABASE_NAME"),
+            'USER': os.environ.get("DATABASE_USERNAME"),
+            'PASSWORD': os.environ.get("DATABASE_PASSWORD"),
+            'HOST': os.environ.get("DATABASE_HOST"),
+            'PORT': os.environ.get("DATABASE_PORT")
         }
     }
 
