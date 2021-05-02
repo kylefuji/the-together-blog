@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from django.test.client import Client
 from django.urls import reverse
-from home.models import Post, Album
+from api.models import Post, Album
 import uuid
 
 CONTENT_JSON = "application/json"
