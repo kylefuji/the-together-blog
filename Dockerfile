@@ -9,4 +9,4 @@ RUN chmod +x start.sh
 RUN pip install -r requirements.txt  
 RUN rm -rf api/migrations
 EXPOSE 1337
-CMD ["start.sh"]
+CMD start.sh
