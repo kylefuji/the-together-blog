@@ -104,57 +104,59 @@ def handle_album(request):
 
 def handle_album_by_id(request, album_id):
     if request.method == "GET":
-        try:
-            album = Album.objects.get(id=album_id)
-            response = {
-                "id": album.id,
-                "title": album.title,
-                "description": album.description,
-                "imageURL": album.imageURL,
-                "created": album.created
-            }
-            return JsonResponse(response, status=200)
-        except ObjectDoesNotExist:
-            return JsonResponse({}, status=200)
+        return get_album(request, album_id)
 
     elif request.method == "PUT" and check_staff(request):
-        try:
-            body = json.loads(request.body)
-            album = Album.objects.get(id=album_id)
-            for key in body:
-                if key == "title":
-                    album.title = body[key]
-                elif key == "description":
-                    album.description = body[key]
-                elif key == "imageURL":
-                    album.imageURL = body[key]
-                else:
-                    return JsonResponse({"message":ALBUM_UPDATE_DENY}, status=400)
-            album.save()
-            response = {
-                "id": album.id,
-                "title": album.title,
-                "description": album.description,
-                "imageURL": album.imageURL,
-                "created": album.created
-            }
-            return JsonResponse(response, status=200)
-        except ObjectDoesNotExist:
-            return JsonResponse({"message":ALBUM_UPDATE_DENY}, status=400)
-        except json.JSONDecodeError:
-            return JsonResponse({"message":ALBUM_UPDATE_DENY}, status=400)
+        return edit_album(request, album_id)
 
     elif request.method == "POST" and check_staff(request):
         return create_album(request, album_id)
     
     elif request.method == "DELETE" and check_staff(request):
-        try:
-            album = Album.objects.get(id=album_id)
-            album.delete()
-            return JsonResponse({"message":"album deleted"}, status=200)
-        except ObjectDoesNotExist:
-            return JsonResponse({"message":"could not delete album"}, status=400)
+        return delete_album(request, album_id)
+
     return JsonResponse({"message":NOT_AUTH}, status=401)
+
+def get_album(request, album_id):
+    try:
+        album = Album.objects.get(id=album_id)
+        response = {
+            "id": album.id,
+            "title": album.title,
+            "description": album.description,
+            "imageURL": album.imageURL,
+            "created": album.created
+        }
+        return JsonResponse(response, status=200)
+    except ObjectDoesNotExist:
+        return JsonResponse({}, status=200)
+
+def edit_album(request, album_id):
+    try:
+        body = json.loads(request.body)
+        album = Album.objects.get(id=album_id)
+        for key in body:
+            if key == "title":
+                album.title = body[key]
+            elif key == "description":
+                album.description = body[key]
+            elif key == "imageURL":
+                album.imageURL = body[key]
+            else:
+                return JsonResponse({"message":ALBUM_UPDATE_DENY}, status=400)
+        album.save()
+        response = {
+            "id": album.id,
+            "title": album.title,
+            "description": album.description,
+            "imageURL": album.imageURL,
+            "created": album.created
+        }
+        return JsonResponse(response, status=200)
+    except ObjectDoesNotExist:
+        return JsonResponse({"message":ALBUM_UPDATE_DENY}, status=400)
+    except json.JSONDecodeError:
+        return JsonResponse({"message":ALBUM_UPDATE_DENY}, status=400)
 
 def create_album(request, album_id):
     try:
@@ -179,6 +181,14 @@ def create_album(request, album_id):
     except KeyError:
         return JsonResponse({"message":ALBUM_CREATE_DENY}, status=400)
 
+def delete_album(request, album_id):
+    try:
+        album = Album.objects.get(id=album_id)
+        album.delete()
+        return JsonResponse({"message":"album deleted"}, status=200)
+    except ObjectDoesNotExist:
+        return JsonResponse({"message":"could not delete album"}, status=400)
+
 def handle_post(request):
     if request.method == "GET":
         try:
@@ -202,6 +212,7 @@ def handle_post(request):
             return JsonResponse(response, status=200)
         except ObjectDoesNotExist:
             return JsonResponse({}, status=200)
+            
     elif request.method == "POST":
         if not check_staff(request):
             return JsonResponse({"message":NOT_AUTH}, status=401)
@@ -211,76 +222,79 @@ def handle_post(request):
 
 def handle_post_by_id(request, post_id):
     if request.method == "GET":
-        try:
-            post = Post.objects.get(id=post_id)
-            response = {
-                "id": post.id,
-                "user": str(post.user),
-                "title": post.title,
-                "content": post.content,
-                "created": post.created,
-                "imageURLs": post.imageURLs,
-                "videoURLs": post.videoURLs,
-            }
-            try:
-                response["album"] = post.album.id
-            except AttributeError:
-                response["album"] = None
-            return JsonResponse(response)
-        except ObjectDoesNotExist:
-            return JsonResponse({}, status=200)
+        return get_post(request, post_id)
+
     elif request.method == "PUT" and check_staff(request):
-        try:
-            body = json.loads(request.body)
-            post = Post.objects.get(id=post_id)
-            for key in body:
-                if key == "title":
-                    post.title = body[key]
-                elif key == "content":
-                    post.content = body[key]
-                elif key == "imageURLs":
-                    post.imageURLs = body[key]
-                elif key == "videoURLs":
-                    post.videoURLs = body[key]
-                elif key == "album":
-                    try:
-                        album = Album.objects.get(id=body[key])
-                        post.album = album
-                    except ObjectDoesNotExist:
-                        None
-                else:
-                    return JsonResponse({"message":POST_UPDATE_DENY}, status=400)
-            post.save()
-            response = {
-                "id": post.id,
-                "user": str(post.user),
-                "title": post.title,
-                "content": post.content,
-                "created": post.created,
-                "imageURLs": post.imageURLs,
-                "videoURLs": post.videoURLs,
-            }
-            try:
-                response["album"] = post.album.id
-            except AttributeError:
-                response["album"] = None
-            return JsonResponse(response, status=200)
-        except ObjectDoesNotExist:
-            return JsonResponse({"message":POST_UPDATE_DENY}, status=400)
-        except json.JSONDecodeError:
-            return JsonResponse({"message":POST_UPDATE_DENY}, status=400)
+        return edit_post(request, post_id)
 
     elif request.method == "POST" and check_staff(request):
         return create_post(request, post_id)
 
     elif request.method == "DELETE" and check_staff(request):
-        try:
-            post = Post.objects.get(id=post_id)
-            post.delete()
-            return JsonResponse({"message":"post deleted"}, status=200)
-        except ObjectDoesNotExist:
-            return JsonResponse({"message":"could not delete post"}, status=400)
+        delete_post(request, post_id)
+
     return JsonResponse({"message":NOT_AUTH}, status=401)
+
+def get_post(request, post_id):
+    try:
+        post = Post.objects.get(id=post_id)
+        response = {
+            "id": post.id,
+            "user": str(post.user),
+            "title": post.title,
+            "content": post.content,
+            "created": post.created,
+            "imageURLs": post.imageURLs,
+            "videoURLs": post.videoURLs,
+        }
+        try:
+            response["album"] = post.album.id
+        except AttributeError:
+            response["album"] = None
+        return JsonResponse(response)
+    except ObjectDoesNotExist:
+        return JsonResponse({}, status=200)
+
+def edit_post(request, post_id):
+    try:
+        body = json.loads(request.body)
+        post = Post.objects.get(id=post_id)
+        for key in body:
+            if key == "title":
+                post.title = body[key]
+            elif key == "content":
+                post.content = body[key]
+            elif key == "imageURLs":
+                post.imageURLs = body[key]
+            elif key == "videoURLs":
+                post.videoURLs = body[key]
+            elif key == "album":
+                try:
+                    album = Album.objects.get(id=body[key])
+                    post.album = album
+                except ObjectDoesNotExist:
+                    None
+            else:
+                return JsonResponse({"message":POST_UPDATE_DENY}, status=400)
+        post.save()
+        response = {
+            "id": post.id,
+            "user": str(post.user),
+            "title": post.title,
+            "content": post.content,
+            "created": post.created,
+            "imageURLs": post.imageURLs,
+            "videoURLs": post.videoURLs,
+        }
+        try:
+            response["album"] = post.album.id
+        except AttributeError:
+            response["album"] = None
+        return JsonResponse(response, status=200)
+    except ObjectDoesNotExist:
+        return JsonResponse({"message":POST_UPDATE_DENY}, status=400)
+    except json.JSONDecodeError:
+        return JsonResponse({"message":POST_UPDATE_DENY}, status=400)
 
 def create_post(request, post_id):
     try:
@@ -325,3 +339,11 @@ def create_post(request, post_id):
         return JsonResponse({"message":POST_CREATE_DENY}, status=400)
     except KeyError:
         return JsonResponse({"message":POST_CREATE_DENY}, status=400)
+
+def delete_post(request, post_id):
+    try:
+        post = Post.objects.get(id=post_id)
+        post.delete()
+        return JsonResponse({"message":"post deleted"}, status=200)
+    except ObjectDoesNotExist:
+        return JsonResponse({"message":"could not delete post"}, status=400)
