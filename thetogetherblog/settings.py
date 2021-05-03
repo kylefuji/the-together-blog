@@ -99,7 +99,6 @@ if os.environ.get('DEPLOY'):
             'PORT': os.environ.get('QOVERY_DATABASE_THETOGETHERBLOG_PORT')
         }
     }
-    SECURE_SSL_REDIRECT =  True
 
 if os.environ.get('GITHUB_WORKFLOW'):
     DATABASES = {
