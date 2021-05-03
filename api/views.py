@@ -8,7 +8,9 @@ import json
 from django.http.response import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.paginator import Paginator
 from django.db import IntegrityError
+from django.db.models import Q
 import uuid
 
 NOT_AUTH = "not authenticated"
@@ -82,9 +84,38 @@ def check_login(request):
 def handle_album(request):
     if request.method == "GET":
         try:
-            all_albums = Album.objects.all().order_by('-created')
-            response = {"albums": []}
-            for album in all_albums:
+            if 'search' in request.GET:
+                all_albums = Album.objects.all().filter(Q(id__contains=request.GET.get('search')) | 
+                                                        Q(title__contains=request.GET.get('search')) | 
+                                                        Q(description__contains=request.GET.get('search')) |
+                                                        Q(imageURL__contains=request.GET.get('search')) |
+                                                        Q(created__contains=request.GET.get('search')) |
+                                                        Q(reference__contains=request.GET.get('search'))
+                                                        ).order_by('-created')
+            else:
+                all_albums = Album.objects.all().order_by('-created')
+            page = 1
+            size = 25
+            try:
+                if 'page' in request.GET:
+                    page = int(request.GET.get('page'))
+                if 'size' in request.GET:
+                    size = int(request.GET.get('size'))
+            except ValueError:
+                pass
+            paginator = Paginator(all_albums, size)
+            page_obj = paginator.get_page(page)
+            response = {"page": {
+                                "number": page_obj.number, 
+                                "hasNext": page_obj.has_next(),
+                                "hasPrev": page_obj.has_previous(),
+                                "startIndex": page_obj.start_index(),
+                                "endIndex": page_obj.end_index(),
+                                "size": size
+                                }, 
+                        "albums": []
+                    }
+            for album in page_obj.object_list:
                 response["albums"].append({
                     "id": album.id,
                     "title": album.title,
@@ -189,11 +220,43 @@ def delete_album(request, album_id):
     except ObjectDoesNotExist:
         return JsonResponse({"message":"could not delete album"}, status=400)
 
+
 def handle_post(request):
     if request.method == "GET":
         try:
-            all_posts = Post.objects.all().order_by('-created')
-            response = {"posts": []}
+            if 'search' in request.GET:
+                all_posts = Post.objects.all().filter(Q(id__contains=request.GET.get('search')) | 
+                                                    Q(title__contains=request.GET.get('search')) | 
+                                                    Q(user__username__contains=request.GET.get('search')) |
+                                                    Q(content__contains=request.GET.get('search')) |
+                                                    Q(imageURLs__contains=[request.GET.get('search')]) | 
+                                                    Q(videoURLs__contains=[request.GET.get('search')]) |
+                                                    Q(album__title__contains=request.GET.get('search')) | 
+                                                    Q(created__contains=request.GET.get('search'))
+                                                    ).order_by('-created')
+            else:
+                all_posts = Post.objects.all().order_by('-created')
+            page = 1
+            size = 25
+            try:
+                if 'page' in request.GET:
+                    page = int(request.GET.get('page'))
+                if 'size' in request.GET:
+                    size = int(request.GET.get('size'))
+            except ValueError:
+                pass
+            paginator = Paginator(all_posts, size)
+            page_obj = paginator.get_page(page)
+            response = {"page": {
+                                "number": page_obj.number, 
+                                "hasNext": page_obj.has_next(),
+                                "hasPrev": page_obj.has_previous(),
+                                "startIndex": page_obj.start_index(),
+                                "endIndex": page_obj.end_index(),
+                                "size": size
+                                }, 
+                        "posts": []
+                    }
             for post in all_posts:
                 post_dict = {
                     "id": post.id,

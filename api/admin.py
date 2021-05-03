@@ -14,7 +14,7 @@ class PostAdmin(admin.ModelAdmin):
                     'album',
                     'created')
 
-class AlbumADmin(admin.ModelAdmin):
+class AlbumAdmin(admin.ModelAdmin):
     list_display = ('id',
                     'title',
                     'description',
@@ -23,4 +23,4 @@ class AlbumADmin(admin.ModelAdmin):
                     'reference')
 
 admin.site.register(Post, PostAdmin)
-admin.site.register(Album)
+admin.site.register(Album, AlbumAdmin)
