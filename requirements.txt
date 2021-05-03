@@ -1,5 +1,3 @@
 django
-django-crispy-forms
 psycopg2
 coverage
-python-dotenv
