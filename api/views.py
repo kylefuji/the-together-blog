@@ -8,7 +8,9 @@ import json
 from django.http.response import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.paginator import Paginator
 from django.db import IntegrityError
+from django.db.models import Q
 import uuid
 
 NOT_AUTH = "not authenticated"
@@ -79,12 +81,35 @@ def check_login(request):
     except ObjectDoesNotExist:
         return False
 
+def handle_page(request, objects):
+    page = 1
+    size = 10
+    try:
+        if 'page' in request.GET:
+            page = int(request.GET.get('page'))
+        if 'size' in request.GET:
+            size = int(request.GET.get('size'))
+    except ValueError:
+        pass
+    paginator = Paginator(objects, size)
+    return paginator.get_page(page), size
+
 def handle_album(request):
     if request.method == "GET":
         try:
-            all_albums = Album.objects.all().order_by('-created')
-            response = {"albums": []}
-            for album in all_albums:
+            all_albums = handle_album_search(request)
+            page_obj, size = handle_page(request, all_albums)
+            response = {"page": {
+                                "number": page_obj.number, 
+                                "hasNext": page_obj.has_next(),
+                                "hasPrev": page_obj.has_previous(),
+                                "startIndex": page_obj.start_index(),
+                                "endIndex": page_obj.end_index(),
+                                "size": size
+                                }, 
+                        "albums": []
+                    }
+            for album in page_obj.object_list:
                 response["albums"].append({
                     "id": album.id,
                     "title": album.title,
@@ -101,6 +126,17 @@ def handle_album(request):
         return create_album(request, str(uuid.uuid4()))
     else:
         return JsonResponse({"message":"method not allowed"}, status=405)
+
+def handle_album_search(request):
+    if 'search' in request.GET:
+        return Album.objects.all().filter(Q(id__contains=request.GET.get('search')) | 
+                                                Q(title__contains=request.GET.get('search')) | 
+                                                Q(description__contains=request.GET.get('search')) |
+                                                Q(imageURL__contains=request.GET.get('search')) |
+                                                Q(created__contains=request.GET.get('search')) |
+                                                Q(reference__contains=request.GET.get('search'))
+                                                ).order_by('-created')
+    return Album.objects.all().order_by('-created')
 
 def handle_album_by_id(request, album_id):
     if request.method == "GET":
@@ -189,11 +225,22 @@ def delete_album(request, album_id):
     except ObjectDoesNotExist:
         return JsonResponse({"message":"could not delete album"}, status=400)
 
+
 def handle_post(request):
     if request.method == "GET":
         try:
-            all_posts = Post.objects.all().order_by('-created')
-            response = {"posts": []}
+            all_posts = handle_post_search(request)
+            page_obj, size = handle_page(request, all_posts)
+            response = {"page": {
+                                "number": page_obj.number, 
+                                "hasNext": page_obj.has_next(),
+                                "hasPrev": page_obj.has_previous(),
+                                "startIndex": page_obj.start_index(),
+                                "endIndex": page_obj.end_index(),
+                                "size": size
+                                }, 
+                        "posts": []
+                    }
             for post in all_posts:
                 post_dict = {
                     "id": post.id,
@@ -219,6 +266,19 @@ def handle_post(request):
         return create_post(request, str(uuid.uuid4()))
     else:
         return JsonResponse({"message":"method not allowed"}, status=405)
+
+def handle_post_search(request):
+    if 'search' in request.GET:
+        return Post.objects.all().filter(Q(id__contains=request.GET.get('search')) | 
+                                            Q(title__contains=request.GET.get('search')) | 
+                                            Q(user__username__contains=request.GET.get('search')) |
+                                            Q(content__contains=request.GET.get('search')) |
+                                            Q(imageURLs__contains=[request.GET.get('search')]) | 
+                                            Q(videoURLs__contains=[request.GET.get('search')]) |
+                                            Q(album__title__contains=request.GET.get('search')) | 
+                                            Q(created__contains=request.GET.get('search'))
+                                            ).order_by('-created')
+    return Post.objects.all().order_by('-created')
 
 def handle_post_by_id(request, post_id):
     if request.method == "GET":
