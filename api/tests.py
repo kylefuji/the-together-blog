@@ -95,6 +95,22 @@ class TestApi(TestCase):
         response = self.c.get(reverse('api_post'))
         self.assertEquals(response.status_code, 200)
 
+    def testGetPostsWithSearchAndPagination(self):
+        response = self.c.get(reverse('api_post'), {'page': '1', 'size': '1', 'search': 'test'})
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response.json()["page"]["size"], 1)
+        self.assertNotEquals(response.json()["posts"], [])
+
+    def testGetPostsWithInvalidSearchAndPagination(self):
+        response = self.c.get(reverse('api_post'), {'page': '1', 'size': '1', 'search': 'invalid search'})
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response.json()["page"]["size"], 1)
+        self.assertEquals(response.json()["posts"], [])
+    
+    def testGetPostsWithSearchAndPagination(self):
+        response = self.c.get(reverse('api_post'), {'page': '1', 'size': '1', 'search': 'test'})
+        self.assertEquals(response.status_code, 200)
+
     def testUnauthenticatedNewPost(self):
         body = {
             "title": TITLE,
@@ -168,6 +184,19 @@ class TestApi(TestCase):
     def testGetAlbums(self):
         response = self.c.get(reverse('api_album'))
         self.assertEquals(response.status_code, 200)
+        self.assertEquals(response.json()["page"]["size"], 10)
+
+    def testGetAlbumsWithSearchAndPagination(self):
+        response = self.c.get(reverse('api_album'), {'page': '1', 'size': '1', 'search': 'test'})
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response.json()["page"]["size"], 1)
+        self.assertNotEquals(response.json()["albums"], [])
+
+    def testGetAlbumsWithInvalidSearchAndPagination(self):
+        response = self.c.get(reverse('api_album'), {'page': '1', 'size': '1', 'search': 'invalid search'})
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response.json()["page"]["size"], 1)
+        self.assertEquals(response.json()["albums"], [])
 
     def testUnauthenticatedNewAlbum(self):
         body = {
