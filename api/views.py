@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
 from django.db import IntegrityError
+from django.db.utils import DataError
 from django.db.models import Q
 import uuid
 
@@ -276,6 +277,7 @@ def handle_post_search(request):
                                             Q(imageURLs__contains=[request.GET.get('search')]) | 
                                             Q(videoURLs__contains=[request.GET.get('search')]) |
                                             Q(album__title__contains=request.GET.get('search')) | 
+                                            Q(album__id__contains=request.GET.get('search')) | 
                                             Q(created__contains=request.GET.get('search'))
                                             ).order_by('-created')
     return Post.objects.all().order_by('-created')
@@ -324,9 +326,9 @@ def edit_post(request, post_id):
                 post.title = body[key]
             elif key == "content":
                 post.content = body[key]
-            elif key == "imageURLs":
+            elif key == "imageURLs" and type(body[key]) == list:
                 post.imageURLs = body[key]
-            elif key == "videoURLs":
+            elif key == "videoURLs" and type(body[key]) == list:
                 post.videoURLs = body[key]
             elif key == "album":
                 try:
@@ -337,24 +339,27 @@ def edit_post(request, post_id):
             else:
                 return JsonResponse({"message":POST_UPDATE_DENY}, status=400)
         post.save()
-        response = {
-            "id": post.id,
-            "user": str(post.user),
-            "title": post.title,
-            "content": post.content,
-            "created": post.created,
-            "imageURLs": post.imageURLs,
-            "videoURLs": post.videoURLs,
-        }
-        try:
-            response["album"] = post.album.id
-        except AttributeError:
-            response["album"] = None
+        response = create_post_response(post)
         return JsonResponse(response, status=200)
     except ObjectDoesNotExist:
         return JsonResponse({"message":POST_UPDATE_DENY}, status=400)
     except json.JSONDecodeError:
         return JsonResponse({"message":POST_UPDATE_DENY}, status=400)
+
+def create_post_response(post):
+    response = {
+        "id": post.id,
+        "user": str(post.user),
+        "title": post.title,
+        "content": post.content,
+        "created": post.created,
+        "imageURLs": post.imageURLs,
+        "videoURLs": post.videoURLs,
+        "album": None
+    }
+    if post.album != None:
+        response["album"] = post.album.id
+    return response
 
 def create_post(request, post_id):
     try:
@@ -364,10 +369,10 @@ def create_post(request, post_id):
         post = Post.objects.create(id=post_id, title=body["title"], \
             content=body["content"], user=user)
         
-        if "imageURLs" in body:
+        if "imageURLs" in body and type(body["imageURLs"]) == list:
             post.imageURLs = body["imageURLs"]
             post.save()
-        if "videoURLs" in body:
+        if "videoURLs" in body and type(body["videoURLs"]) == list:
             post.videoURLs = body["videoURLs"]
             post.save()
         
@@ -379,19 +384,7 @@ def create_post(request, post_id):
             except ObjectDoesNotExist:
                 None
 
-        response = {
-            "id": post.id,
-            "user": str(post.user),
-            "title": post.title,
-            "content": post.content,
-            "created": post.created,
-            "imageURLs": post.imageURLs,
-            "videoURLs": post.videoURLs,
-        }
-        try:
-            response["album"] = post.album.id
-        except AttributeError:
-            response["album"] = None
+        response = create_post_response(post)
         return JsonResponse(response, status=201)
     except IntegrityError:
         return JsonResponse({"message":POST_CREATE_DENY}, status=400)
