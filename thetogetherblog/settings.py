@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 import os
-from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,7 +26,7 @@ SECRET_KEY = '(0x$583=_h5@jud290me24^)j99_mc%lluedr43p@wnlo0!%e9'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -40,11 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'crispy_forms',
     'django.contrib.postgres'
 ]
-
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -96,13 +92,14 @@ if os.environ.get('DEPLOY'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': os.environ.get("DATABASE_NAME"),
-            'USER': os.environ.get("DATABASE_USERNAME"),
-            'PASSWORD': os.environ.get("DATABASE_PASSWORD"),
-            'HOST': os.environ.get("DATABASE_HOST"),
-            'PORT': os.environ.get("DATABASE_PORT") 
+            'NAME': os.environ.get('QOVERY_DATABASE_THETOGETHERBLOG_DATABASE'),
+            'USER': os.environ.get('QOVERY_DATABASE_THETOGETHERBLOG_USERNAME'),
+            'PASSWORD': os.environ.get('QOVERY_DATABASE_THETOGETHERBLOG_PASSWORD'),
+            'HOST': os.environ.get('QOVERY_DATABASE_THETOGETHERBLOG_HOST'),
+            'PORT': os.environ.get('QOVERY_DATABASE_THETOGETHERBLOG_PORT')
         }
     }
+    SECURE_SSL_REDIRECT =  True
 
 if os.environ.get('GITHUB_WORKFLOW'):
     DATABASES = {
