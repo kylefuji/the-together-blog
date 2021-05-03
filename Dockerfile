@@ -9,8 +9,4 @@ RUN chmod +x start.sh
 RUN pip install -r requirements.txt  
 RUN rm -rf api/migrations
 EXPOSE 8000
-<<<<<<< HEAD
-ENTRYPOINT [ "./start.sh", "${SU_ADMIN}", "${SU_PASSWORD}", "${SU_EMAIL}" ]
-=======
-ENTRYPOINT [ "./start.sh" ]
->>>>>>> c4e7634831733612d3a8773cf2e059960d02c8f3
+ENTRYPOINT [ "./start.sh", ${SU_ADMIN}, ${SU_PASSWORD}, ${SU_EMAIL} ]
