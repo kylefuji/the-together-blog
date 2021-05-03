@@ -241,7 +241,7 @@ def handle_post(request):
                                 }, 
                         "posts": []
                     }
-            for post in all_posts:
+            for post in page_obj.object_list:
                 post_dict = {
                     "id": post.id,
                     "user": str(post.user),
@@ -266,6 +266,17 @@ def handle_post(request):
         return create_post(request, str(uuid.uuid4()))
     else:
         return JsonResponse({"message":"method not allowed"}, status=405)
+
+# def handle_album_search(request):
+#     if 'search' in request.GET:
+#         return Album.objects.all().filter(Q(id__contains=request.GET.get('search')) | 
+#                                                 Q(title__contains=request.GET.get('search')) | 
+#                                                 Q(description__contains=request.GET.get('search')) |
+#                                                 Q(imageURL__contains=request.GET.get('search')) |
+#                                                 Q(created__contains=request.GET.get('search')) |
+#                                                 Q(reference__contains=request.GET.get('search'))
+#                                                 ).order_by('-created')
+#     return Album.objects.all().order_by('-created')
 
 def handle_post_search(request):
     if 'search' in request.GET:
