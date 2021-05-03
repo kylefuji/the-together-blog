@@ -241,7 +241,7 @@ def handle_post(request):
                                 }, 
                         "posts": []
                     }
-            for post in all_posts:
+            for post in page_obj.object_list:
                 post_dict = {
                     "id": post.id,
                     "user": str(post.user),
