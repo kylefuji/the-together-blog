@@ -101,6 +101,12 @@ class TestApi(TestCase):
         self.assertEquals(response.json()["page"]["size"], 1)
         self.assertNotEquals(response.json()["posts"], [])
 
+    def testGetPostsWithSearchAndInvalidPagination(self):
+        response = self.c.get(reverse('api_post'), {'page': 'a', 'size': 'a', 'search': 'test'})
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response.json()["page"]["size"], 1)
+        self.assertNotEquals(response.json()["posts"], [])
+
     def testGetPostsWithInvalidSearchAndPagination(self):
         response = self.c.get(reverse('api_post'), {'page': '1', 'size': '1', 'search': 'invalid search'})
         self.assertEquals(response.status_code, 200)
