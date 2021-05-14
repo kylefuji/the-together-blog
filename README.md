@@ -11,6 +11,7 @@ You can find the SonarCloud static analysis reports here:
 https://sonarcloud.io/dashboard?id=kylefuji_the-together-blog
 
 You can find the deployed url here:
+
 https://main-itq44jw09f2jr4rj-gtw.qovery.io/
 
 ## API Endpoints
